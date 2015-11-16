@@ -1,0 +1,23 @@
+<ion-view view-title="{{title}}" ng-controller="AddCtrl">
+  <ion-content>
+    <div class="list">
+      <label class="item item-input">
+        <input type="text" placeholder="Playlist Name">
+      </label>
+      <!-- Current playlist -->
+      <label class="item item-input">
+        <input type="text" placeholder="Search">
+      </label>
+      <!-- Search results in a list here -->
+      <label class="item" ng-repeat="result in results">
+        <p> {{result.name}} 
+          <span ng-repeat="artist in result.artists">
+           - {{artist.name}}
+          </span>
+        </p>
+      </label>
+    </div>
+    <div class="padding"></div>
+    <button class="button button-calm" ng-click="clickhere()"> Submit </button>
+  </ion-content>
+</ion-view>
