@@ -8,6 +8,7 @@
 
 var app = angular.module('app', ['ionic']);
 
+var allPlaylist = [];
 
 app.config(function($stateProvider, $urlRouterProvider)
 {
@@ -19,7 +20,7 @@ app.config(function($stateProvider, $urlRouterProvider)
 
   $stateProvider.state('add',{
     url: '/add',
-    templateUrl: 'templates/edit.html',
+    templateUrl: 'templates/add.html',
     controller:'AddCtrl'
   });
 
@@ -65,21 +66,48 @@ app.controller('ListCtrl',function($http,$scope)
 
 });
 
-app.controller('AddCtrl',function($scope,$http)
+app.controller('AddCtrl',function($scope,$http,$state)
 {
   var word = "The Hills";
   $scope.results = [];
-
+  $scope.playlist = [];
   $scope.title = "Add Playlist";
   $http.get('https://api.spotify.com/v1/search?type=track&market=AU&limit=10&q=' + word )
   .success(function(response)
   {
-    angular.forEach(response.tracks.items, function(items){
+    angular.forEach(response.tracks.items, function(items)
+	{
        $scope.results.push(items);
         console.log(items);
     });
 
   });
+  
+  $scope.AddToPlaylist = function(track)
+  {
+	  //Effective way to implement a search.
+	  var isDup = false;
+	  angular.forEach($scope.playlist, function(songs)
+	  {
+		  if (track.uri == songs.uri)
+		  {
+			  console.log("Song is already in playlist");
+			  isDup = true;
+		  } 
+	  });
+	  
+	  if (isDup == false)
+		$scope.playlist.push(track);
+  };
+  
+  $scope.NewPlaylist = function(){
+	
+		allPlaylist = $scope.playlist.push;
+		// Display in struct or hashmap?
+		console.log("added to playlist");
+		$state.go("home");
+  };
+  
 });
 
 app.run(function($ionicPlatform) {

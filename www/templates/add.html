@@ -1,0 +1,37 @@
+<ion-view view-title="{{title}}" ng-controller="AddCtrl">
+  <ion-content>
+	<ion-scroll  zooming="true" direction="xy" style="width: 500px; height: 500px">
+    <div class="list">
+      <label class="item item-input">
+        <input type="text" placeholder="Playlist Name">
+      </label>
+      <!-- Current playlist -->
+	 </div>
+	 <div class="list list-inset">
+	  <label class="item" ng-repeat="songs in playlist track by songs.uri" ng-if="playlist.length > 0">
+		<p> {{songs.name}}
+		 <span ng-repeat="artist in songs.artists">
+           - {{artist.name}}
+          </span>
+		</p>
+	  </label>
+	</div>
+	
+	<label class="item item-input">
+        <input type="text" placeholder="Search">
+      </label>
+	 
+	<div class="list list-inset">
+      <!-- Live Search results in a list here -->
+        <a class="item item-icon-right" ng-repeat="result in results" ng-click="AddToPlaylist(result)"  href=" " style="text-decoration:none;color:black;"> {{result.name}} 
+          <span ng-repeat="artist in result.artists">
+           - {{artist.name}}
+          </span>
+		  	<i class="icon ion-plus"> </i>
+        </a>
+    </div>
+    <div class="padding"></div>
+    <button class="button button-calm" ng-click="NewPlaylist()"> Submit </button>
+	</ion-scroll>
+  </ion-content>
+</ion-view>
