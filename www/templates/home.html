@@ -11,7 +11,7 @@
           <i class="icon ion-plus-round"></i>
           Add Playlist</a>
           <a class="item item-icon-left" 
-            href="#/EditPlaylist">
+            href="#/edit">
          <i class="icon ion-edit"></i>
             Edit Playlist</a>
           <!-- Remove option also included -->
@@ -19,7 +19,6 @@
           href="#/SharePlaylist">
           <i class="icon ion-share"></i>
           Share Playlist</a>
-          <button class="item button button-calm padding" ng-click="testSpotify()" >Spotify</button>
           <p class="item" ng-repeat="song in songs" > 
             <a class="padding" href="{{song.preview_url}}"> 
               <i class="icon ion-headphone"> </i>

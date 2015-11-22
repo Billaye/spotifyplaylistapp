@@ -1,37 +1,42 @@
-<ion-view view-title="{{title}}" ng-controller="AddCtrl">
+<ion-view view-title="{{title}}">
   <ion-content>
-	<ion-scroll  zooming="true" direction="xy" style="width: 500px; height: 500px">
     <div class="list">
       <label class="item item-input">
-        <input type="text" placeholder="Playlist Name">
+        <input type="text" placeholder="Playlist Name" id="pName" ng-model="plName">
       </label>
       <!-- Current playlist -->
 	 </div>
 	 <div class="list list-inset">
-	  <label class="item" ng-repeat="songs in playlist track by songs.uri" ng-if="playlist.length > 0">
-		<p> {{songs.name}}
-		 <span ng-repeat="artist in songs.artists">
+	  <label class="item" ng-repeat="songs in playlist track by songs.uri" ng-if="playlist.length > 0" ng-click="RemoveFromPlaylist(songs)">
+		<p class="item-icon-right"> {{songs.name}}
+		 <span ng-repeat="artist in songs.artists" >
            - {{artist.name}}
           </span>
+      <i class="icon ion-minus"></i>
 		</p>
 	  </label>
 	</div>
 	
+  <div class="list">
 	<label class="item item-input">
-        <input type="text" placeholder="Search">
-      </label>
+        <input type="text" placeholder="Search for a song" id="query">
+  </label>
+  <label class="item item-button">
+      <button class="button button-stable" ng-click="Search()"> Search </button>
+  </label>
+  </div>
 	 
-	<div class="list list-inset">
+	<ion-list>
       <!-- Live Search results in a list here -->
-        <a class="item item-icon-right" ng-repeat="result in results" ng-click="AddToPlaylist(result)"  href=" " style="text-decoration:none;color:black;"> {{result.name}} 
+        <ion-item class="item item-icon-right" ng-repeat="result in results" ng-click="AddToPlaylist(result)" style="text-decoration:none;color:black;"> {{result.name}} 
           <span ng-repeat="artist in result.artists">
            - {{artist.name}}
           </span>
+          <ion-option-button side="left" class="button-positive" ng-click="Preview(result)">{{buttonName}}</ion-option-button>
 		  	<i class="icon ion-plus"> </i>
-        </a>
-    </div>
+        </ion-item>
+  <ion-list>
     <div class="padding"></div>
-    <button class="button button-calm" ng-click="NewPlaylist()"> Submit </button>
-	</ion-scroll>
+    <button class="button button-calm" ng-click="Save()"> Submit </button>
   </ion-content>
 </ion-view>
