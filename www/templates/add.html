@@ -6,24 +6,25 @@
       </label>
       <!-- Current playlist -->
 	 </div>
-	 <div class="list list-inset">
-	  <label class="item" ng-repeat="songs in playlist track by songs.uri" ng-if="playlist.length > 0" ng-click="RemoveFromPlaylist(songs)">
-		<p class="item-icon-right"> {{songs.name}}
-		 <span ng-repeat="artist in songs.artists" >
-           - {{artist.name}}
-          </span>
-      <i class="icon ion-minus"></i>
-		</p>
-	  </label>
-	</div>
-	
+   <ion-scroll style="width:400px;height:200px;">
+  	 <div class="list list-inset" style="width:400px;height:200px;">
+  	  <label class="item" ng-repeat="songs in playlist track by songs.uri" ng-if="playlist.length > 0" ng-click="RemoveFromPlaylist($index)">
+  		<p class="item-icon-right"> {{songs.name}}
+  		 <span ng-repeat="artist in songs.artists" >
+             - {{artist.name}}
+            </span>
+        <i class="icon ion-minus"></i>
+  		</p>
+  	  </label>
+  	</div>
+  </ion-scroll>
   <div class="list">
 	<label class="item item-input">
         <input type="text" placeholder="Search for a song" id="query">
   </label>
-  <label class="item item-button">
+  <div class="padding">
+  </div>
       <button class="button button-stable" ng-click="Search()"> Search </button>
-  </label>
   </div>
 	 
 	<ion-list>
@@ -33,7 +34,7 @@
            - {{artist.name}}
           </span>
           <ion-option-button side="left" class="button-positive" ng-click="Preview(result)">{{buttonName}}</ion-option-button>
-		  	<i class="icon ion-plus"> </i>
+		  	<i class="icon ion-arrow-right-b"> </i>
         </ion-item>
   <ion-list>
     <div class="padding"></div>

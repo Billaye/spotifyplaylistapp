@@ -5,42 +5,9 @@
 // the 2nd parameter is an array of 'requires'
 ( function(){
 
-  var app = angular.module('app', ['ionic']);
-
-
-  var allPlaylist = angular.fromJson(window.localStorage['allplaylist'] || '[]');
+  var app = angular.module('app', ['ionic','app.playlist']);
+  var audioObject = null;
   
-  function persist()
-  {
-    window.localStorage['allplaylist'] = angular.toJson(allPlaylist);
-  }
-
-  function getPlaylist(id)
-  {
-    for (i = 0; i < allPlaylist.length; i++)
-    {
-      if(allPlaylist[i].id === id)
-      {
-        return allPlaylist[i];
-      }   
-    }
-    return undefined;
-    
-  }
-  function updatePlaylist(playlist)
-  {
-   for (i = 0; i < allPlaylist.length; i++)
-   {
-    if(allPlaylist[i].id === playlist.id)
-    {
-      allPlaylist[i] = playlist;
-      persist();
-      return;
-    }   
-  }
-}
-
-
 app.config(function($stateProvider, $urlRouterProvider)
 {
 
@@ -72,248 +39,173 @@ app.config(function($stateProvider, $urlRouterProvider)
 
 });
 
-// We clicked back - Stop playing music!
-/*
-$rootScope.$on('$stateChangeStart', function()
+app.controller('MainCtrl',function($scope,$rootScope,$ionicHistory,Playlist)
 {
+  $rootScope.StopPlay = function()
+  {
+    if ($rootScope.isNative)
+    {
+        location.href = 'jmh-ios://back'
+    } else{
+      if (audioObject != null && audioObject.paused == false)
+        audioObject.pause();
+      $ionicHistory.goBack();
+    }
 
-
+  };
+ 
 });
-*/
-app.controller('ListCtrl',function($http,$scope)
-{
-
-  $scope.songs = [];
 
 
-});
-
-app.controller('AddCtrl',function($scope,$http,$state)
+app.controller('AddCtrl',function($scope,$http,$state,Playlist)
 {
 
   $scope.playlist = [];
   $scope.title = "Add Playlist";
   $scope.buttonName = "Preview";
-  var audioObject = null;
 
   $scope.Search = function()
   {
-    $scope.results = [];
-    var query = document.getElementById("query").value;
-    console.log("The query is " + query);
-    $http.get('https://api.spotify.com/v1/search?type=track&market=AU&limit=10&q=' + query )
-    .success(function(response)
-    {
-      angular.forEach(response.tracks.items, function(items)
-      {
-       $scope.results.push(items);
-       console.log(items);
-     });
-
-    });
-
-  };
-  
-  $scope.RemoveFromPlaylist = function(track)
+     $scope.results = [];
+     Playlist.search($scope.results);
+  }
+  $scope.RemoveFromPlaylist = function(index)
   {
-    var index = $scope.playlist.indexOf(track);
     $scope.playlist.splice(index,1);
   }
 
   $scope.AddToPlaylist = function(track)
   {
-	  //Effective way to implement a search.
-	  var isDup = false;
-	  angular.forEach($scope.playlist, function(songs)
-	  {
-      if (track.uri == songs.uri)
-      {
-       console.log("Song is already in playlist");
-       isDup = true;
-     } 
-   });
-	  
-	  if (isDup == false)
-      $scope.playlist.push(track);
+	   Playlist.add(track,$scope.playlist);
   };
   
-  $scope.Save = function(){
-
-    var duplicateName = false;
-    angular.forEach(allPlaylist, function(child)
-    {
-     if (child.playlistname == document.getElementById("pName").value)
-     {
-      duplicateName = true;
-    }
-  });
-
-    // Flag invalid if no playlist name
-    if (document.getElementById("pName").value == ""
-     || $scope.playlist.length == 0)
-    {
-
-      console.log("Please fill out fields");
-      return;
-    }
-    else if ( duplicateName == true)
-    {
-      console.log("Duplicate playlist name");
-      return;
-    }
-
-    var object = 
-    {
-      "id" : new Date().getTime().toString(),
-      "playlistname": document.getElementById("pName").value,
-      "playlist": $scope.playlist
-    };
-
-    //TODO: How to store playlists? 
-    allPlaylist.push(object); 
-
-
-		// Display in struct or hashmap?
-    if ($scope.buttonName == "Pause")
-    {
-      console.log("in pause");
-      audioObject.pause();
-    }
-    persist();
-    $state.go("home");
+  $scope.Save = function()
+  {
+      if ((Playlist.save($scope.buttonName,$scope.playlist)) != false)
+      {
+        $state.go("home");
+      }
   };
   
   $scope.Preview = function(song)
   { 
-
-    console.log(document.getElementById("pName").value);
-    if ($scope.buttonName == "Pause")
+    if ($scope.buttonName  == "Pause")
     {
-      console.log("in pause");
       audioObject.pause();
+      $scope.buttonName  = "Preview";
     }
     else
     {
       audioObject = new Audio(song.preview_url);
+      audioObject.addEventListener("ended",function()
+      {
+          $scope.$apply(function()
+          { 
+            $scope.buttonName  = "Preview";
+          });
+      });
       audioObject.play();
-
-    }
-    if ($scope.buttonName == "Preview")
-      $scope.buttonName = "Pause";
-    else
-      $scope.buttonName = "Preview";
-
+      $scope.buttonName  = "Pause";
   };
+
+};
 
 });
 
-app.controller('EditPlaylist',function($scope,$state,$http)
+app.controller('EditPlaylist',function($scope,$state,$http,Playlist)
 {
     
-  $scope.playlistObj = getPlaylist($state.params.name);
+  $scope.playlistObj = Playlist.get($state.params.name);
   $scope.plName = $scope.playlistObj.playlistname;
   $scope.playlist = $scope.playlistObj.playlist;
+
   $scope.title = "Edit Playlist"
-   $scope.buttonName = "Preview";
-  //function that does a search and finds the needed object.
+  $scope.buttonName = "Preview";
 
 
-  $scope.Search = function()
+
+$scope.Search = function()
   {
-    $scope.results = [];
-    var query = document.getElementById("query").value;
-    console.log("The query is " + query);
-    $http.get('https://api.spotify.com/v1/search?type=track&market=AU&limit=10&q=' + query )
-    .success(function(response)
-    {
-      angular.forEach(response.tracks.items, function(items)
-      {
-       $scope.results.push(items);
-       console.log(items);
-     });
-
-    });
-
-  };
-  $scope.RemoveFromPlaylist = function(track)
+     $scope.results = [];
+     Playlist.search($scope.results);
+  }
+  $scope.RemoveFromPlaylist = function(index)
   {
-    var index = $scope.playlist.indexOf(track);
     $scope.playlist.splice(index,1);
   }
 
   $scope.AddToPlaylist = function(track)
   {
-    //Effective way to implement a search.
-    var isDup = false;
-    angular.forEach($scope.playlist, function(songs)
-    {
-      if (track.uri == songs.uri)
-      {
-        console.log("Song is already in playlist");
-        isDup = true;
-      } 
-    });
-    
-    if (isDup == false)
-      $scope.playlist.push(track);
+     Playlist.add(track,$scope.playlist);
   };
-
+  
+  $scope.Save = function()
+  {
+      if ((Playlist.save($scope.buttonName,$scope.playlist)) != false)
+      {
+        $state.go("home");
+      }
+  };
+  
   $scope.Preview = function(song)
   { 
+      if ($scope.buttonName  == "Pause")
+      {
+        audioObject.pause();
+        $scope.buttonName  = "Preview";
+      }
+      else
+      {
+        audioObject = new Audio(song.preview_url);
+        audioObject.addEventListener("ended",function()
+        {
+          $scope.$apply(function()
+          { 
+            $scope.buttonName = "Preview";
+          });
+        });
 
-    console.log(document.getElementById("pName").value);
-    if ($scope.buttonName == "Pause")
-    {
-      console.log("in pause");
-      audioObject.pause();
-    }
-    else
-    {
-      audioObject = new Audio(song.preview_url);
       audioObject.play();
-
-    }
-    if ($scope.buttonName == "Preview")
-      $scope.buttonName = "Pause";
-    else
-      $scope.buttonName = "Preview";
+      $scope.buttonName  = "Pause";
+      } 
 
   };
-
 
   $scope.Save = function()
   {
-
+     // Flag invalid if no playlist name
+     if (document.getElementById("pName").value == ""
+      || playlist.length == 0)
+     {
+      console.log("Please fill out fields");
+      return false;
+    }
     var obj = 
     {
       "id" : $scope.playlistObj.id,
       "playlistname": document.getElementById("pName").value,
       "playlist": $scope.playlist
     };
-    //Create the object again here.
-    updatePlaylist(obj);
+
+    Playlist.update(obj);
+
+    if (button == "Pause")
+    {
+      audioObject.pause();
+    }
     $state.go('home');
-
-
-    //Go to add playlist and be able to submit edited version
-    // Prefil name & array and overwrite old playlist.
-    // Disallow editing of name.update: 
-
-
 
   };
 
 });
 
-app.controller('EditCtrl',function($scope,$state,$http)
+app.controller('EditCtrl',function($scope,$state,$http,Playlist)
 {
 
-  $scope.allPlaylist = allPlaylist;
+  $scope.allPlaylist = angular.fromJson(window.localStorage['allplaylist'] || '[]');
   
 
 });
-
-
 
 app.run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
