@@ -118,6 +118,8 @@ angular.module('app.playlist', [])
 
 		    persist();
 
+			console.log("hello world")
+
 		}
 
 
